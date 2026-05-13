@@ -3,12 +3,20 @@ package me.senseiwells.puppet.action
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import me.senseiwells.puppet.PuppetPlayer
+import me.senseiwells.puppet.extensions.PlayerActionsExtension.Companion.popActionResult
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.protocol.Packet
-import net.minecraft.network.protocol.game.*
+import net.minecraft.network.protocol.game.ServerGamePacketListener
+import net.minecraft.network.protocol.game.ServerboundAttackPacket
+import net.minecraft.network.protocol.game.ServerboundInteractPacket
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket.Action
+import net.minecraft.network.protocol.game.ServerboundSpectateEntityPacket
+import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
+import net.minecraft.network.protocol.game.ServerboundUseItemPacket
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.Entity
@@ -21,12 +29,11 @@ import net.minecraft.world.phys.Vec3
 import kotlin.math.max
 import kotlin.math.sqrt
 
-// Basically a copy of MultiPlayerGameMode to be run server-side
-class PuppetPlayerActions(
-    private val player: PuppetPlayer
+class PlayerActions(
+    private val player: ServerPlayer
 ) {
-    private val chained = ArrayList<PuppetPlayerAction>()
-    private val actions = ArrayList<PuppetPlayerAction>()
+    private val chained = ArrayList<PlayerAction>()
+    private val actions = ArrayList<PlayerAction>()
     private var action = 0
 
     private var destroyBlockPos = BlockPos(-1, -1, -1)
@@ -52,19 +59,29 @@ class PuppetPlayerActions(
 
     var jumping: Boolean = false
 
-    fun run(action: PuppetPlayerAction) {
+    fun run(action: PlayerAction): Boolean {
+        if (!this.valid(action)) {
+            return false
+        }
+
         if (action.immediate) {
             action.run(this.player)
         } else {
             this.actions.add(action)
         }
+        return true
     }
 
-    fun chain(action: PuppetPlayerAction) {
+    fun chain(action: PlayerAction): Boolean {
+        if (!this.valid(action)) {
+            return false
+        }
+
         this.chained.add(action)
+        return true
     }
 
-    fun remove(predicate: (PuppetPlayerAction) -> Boolean) {
+    fun remove(predicate: (PlayerAction) -> Boolean) {
         this.actions.removeIf(predicate)
         this.chained.removeIf(predicate)
     }
@@ -75,6 +92,10 @@ class PuppetPlayerActions(
 
     fun clear() {
         this.chained.clear()
+    }
+
+    fun valid(action: PlayerAction): Boolean {
+        return action !is PuppetPlayerAction || this.player is PuppetPlayer
     }
 
     internal fun tick() {
@@ -119,6 +140,12 @@ class PuppetPlayerActions(
         this.continueAttack(!attacked && this.attackingHeld)
 
         if (this.jumping) {
+            this.jump()
+        }
+    }
+
+    internal fun jump() {
+        if (this.player is PuppetPlayer) {
             this.player.moveControl.jump()
         }
     }
@@ -126,7 +153,7 @@ class PuppetPlayerActions(
     private fun runActions() {
         val iter = this.actions.iterator()
         for (action in iter) {
-            if (action.run(this.player) == PuppetPlayerAction.Result.Complete) {
+            if (action.run(this.player) == PlayerAction.Result.Complete) {
                 iter.remove()
             }
         }
@@ -137,7 +164,7 @@ class PuppetPlayerActions(
         val start = this.action
         while (true) {
             val action = this.chained.getOrNull(this.action) ?: break
-            if (action.run(this.player) == PuppetPlayerAction.Result.Incomplete) {
+            if (action.run(this.player) == PlayerAction.Result.Incomplete) {
                 break
             }
             this.action += 1
@@ -177,7 +204,7 @@ class PuppetPlayerActions(
         val piercingWeapon = heldItem.get(DataComponents.PIERCING_WEAPON)
         if (piercingWeapon != null) {
             this.piercingAttack()
-            this.player.swing(InteractionHand.MAIN_HAND)
+            this.swing(InteractionHand.MAIN_HAND)
             return true
         }
 
@@ -204,7 +231,7 @@ class PuppetPlayerActions(
                 }
             }
         }
-        this.player.swing(InteractionHand.MAIN_HAND)
+        this.swing(InteractionHand.MAIN_HAND)
         return endAttack
     }
 
@@ -220,7 +247,7 @@ class PuppetPlayerActions(
             val blockPos = hitResult.blockPos
             if (!this.player.level().getBlockState(blockPos).isAir) {
                 if (this.continueDestroyBlock(blockPos, hitResult.direction)) {
-                    this.player.swing(InteractionHand.MAIN_HAND)
+                    this.swing(InteractionHand.MAIN_HAND)
                 }
             }
         } else {
@@ -246,7 +273,7 @@ class PuppetPlayerActions(
                         val result = this.interact(hitResult.entity, hitResult, hand)
                         if (result is InteractionResult.Success) {
                             if (result.swingSource == InteractionResult.SwingSource.SERVER) {
-                                this.player.swing(hand)
+                                this.swing(hand)
                             }
                             return
                         }
@@ -256,7 +283,7 @@ class PuppetPlayerActions(
                     val result = this.useItemOn(hand, hitResult)
                     if (result is InteractionResult.Success) {
                         if (result.swingSource == InteractionResult.SwingSource.SERVER) {
-                            this.player.swing(hand)
+                            this.swing(hand)
                         }
                         return
                     } else if (result is InteractionResult.Fail) {
@@ -268,12 +295,16 @@ class PuppetPlayerActions(
                 val result = this.useItem(hand)
                 if (result is InteractionResult.Success) {
                     if (result.swingSource == InteractionResult.SwingSource.SERVER) {
-                        this.player.swing(hand)
+                        this.swing(hand)
                     }
                     return
                 }
             }
         }
+    }
+
+    private fun swing(hand: InteractionHand) {
+        this.player.swing(hand, true)
     }
 
     private fun releaseUsingItem() {
@@ -352,7 +383,7 @@ class PuppetPlayerActions(
     private fun interact(target: Entity, hitResult: EntityHitResult, hand: InteractionHand): InteractionResult {
         val delta = hitResult.location.subtract(target.x, target.y, target.z)
         this.handle(ServerboundInteractPacket(target.id, hand, delta, this.player.isShiftKeyDown))
-        return this.player.connection().popResult(InteractionResult.FAIL)
+        return this.player.popActionResult(InteractionResult.FAIL)
     }
 
     private fun useItemOn(hand: InteractionHand, result: BlockHitResult): InteractionResult {
@@ -360,12 +391,12 @@ class PuppetPlayerActions(
             return InteractionResult.FAIL
         }
         this.handle(ServerboundUseItemOnPacket(hand, result, 0))
-        return this.player.connection().popResult(InteractionResult.PASS)
+        return this.player.popActionResult(InteractionResult.PASS)
     }
 
     private fun useItem(hand: InteractionHand): InteractionResult {
         this.handle(ServerboundUseItemPacket(hand, 0, this.player.yRot, this.player.xRot))
-        return this.player.connection().popResult(InteractionResult.FAIL)
+        return this.player.popActionResult(InteractionResult.FAIL)
     }
 
     private fun getHitResult(): HitResult {
@@ -443,7 +474,7 @@ class PuppetPlayerActions(
         val usingHeld: Boolean,
         val loop: Boolean,
         val action: Int,
-        val actions: List<PuppetPlayerAction>
+        val actions: List<PlayerAction>
     ) {
         companion object {
             val CODEC: Codec<Packed> = RecordCodecBuilder.create { instance ->
@@ -454,7 +485,7 @@ class PuppetPlayerActions(
                     Codec.BOOL.fieldOf("using_held").forGetter(Packed::usingHeld),
                     Codec.BOOL.fieldOf("loop").forGetter(Packed::loop),
                     Codec.INT.fieldOf("action").forGetter(Packed::action),
-                    PuppetPlayerAction.CODEC.listOf().optionalFieldOf("actions", listOf()).forGetter(Packed::actions)
+                    PlayerAction.CODEC.listOf().optionalFieldOf("actions", listOf()).forGetter(Packed::actions)
                 ).apply(instance, ::Packed)
             }
         }

@@ -9,8 +9,9 @@ import com.mojang.serialization.Codec
 import com.mojang.serialization.MapCodec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import me.senseiwells.puppet.PuppetPlayer
+import me.senseiwells.puppet.action.PlayerAction
 import me.senseiwells.puppet.action.PuppetPlayerAction
-import me.senseiwells.puppet.action.PuppetPlayerActionProvider
+import me.senseiwells.puppet.action.PlayerActionProvider
 import net.casual.arcade.commands.argument
 import net.casual.arcade.commands.getArgumentOrElse
 import net.casual.arcade.commands.hasArgument
@@ -25,33 +26,33 @@ import net.minecraft.world.phys.Vec3
 import java.util.*
 
 sealed class LookAtAction(private val lock: Boolean): PuppetPlayerAction {
-    override fun run(player: PuppetPlayer): PuppetPlayerAction.Result {
-        return if (this.lock) PuppetPlayerAction.Result.Incomplete else PuppetPlayerAction.Result.Complete
+    override fun run(player: PuppetPlayer): PlayerAction.Result {
+        return if (this.lock) PlayerAction.Result.Incomplete else PlayerAction.Result.Complete
     }
 
-    override fun provider(): PuppetPlayerActionProvider {
+    override fun provider(): PlayerActionProvider {
         return LookAtAction
     }
 
     private class LookAtPositionAction(lock: Boolean, val target: Vec3): LookAtAction(lock) {
-        override fun run(player: PuppetPlayer): PuppetPlayerAction.Result {
+        override fun run(player: PuppetPlayer): PlayerAction.Result {
             player.lookControl.setLookAt(this.target)
             return super.run(player)
         }
     }
 
     private class LookAtEntityAction(lock: Boolean, val target: EntityReference<Entity>): LookAtAction(lock) {
-        override fun run(player: PuppetPlayer): PuppetPlayerAction.Result {
+        override fun run(player: PuppetPlayer): PlayerAction.Result {
             val entity = this.target.getEntity(player.level(), Entity::class.java)
             if (entity != null) {
                 player.lookControl.setLookAt(entity)
                 return super.run(player)
             }
-            return PuppetPlayerAction.Result.Complete
+            return PlayerAction.Result.Complete
         }
     }
 
-    companion object: PuppetPlayerActionProvider {
+    companion object: PlayerActionProvider {
         private val POSITION_CODEC = RecordCodecBuilder.mapCodec { instance ->
             instance.group(
                 Codec.BOOL.fieldOf("lock").forGetter(LookAtAction::lock),
@@ -96,7 +97,7 @@ sealed class LookAtAction(private val lock: Boolean): PuppetPlayerAction {
             }
         }
 
-        override fun createCommandAction(context: CommandContext<CommandSourceStack>): PuppetPlayerAction {
+        override fun createCommandAction(context: CommandContext<CommandSourceStack>): PlayerAction {
             val lock = context.getArgumentOrElse("lock", BoolArgumentType::getBool) { false }
             if (context.hasArgument("position")) {
                 val position = Vec3Argument.getVec3(context, "position")

@@ -5,30 +5,31 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
 import com.mojang.serialization.MapCodec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import me.senseiwells.puppet.PuppetPlayer
 import me.senseiwells.puppet.action.ActionModifier
-import me.senseiwells.puppet.action.PuppetPlayerAction
-import me.senseiwells.puppet.action.PuppetPlayerActionProvider
+import me.senseiwells.puppet.action.PlayerAction
+import me.senseiwells.puppet.action.PlayerActionProvider
+import me.senseiwells.puppet.extensions.PlayerActionsExtension.Companion.actions
 import net.casual.arcade.commands.argument
 import net.casual.arcade.commands.arguments.EnumArgument
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.resources.Identifier
+import net.minecraft.server.level.ServerPlayer
 
-class JumpAction(private val type: ActionModifier): PuppetPlayerAction {
-    override fun run(player: PuppetPlayer): PuppetPlayerAction.Result {
+class JumpAction(private val type: ActionModifier): PlayerAction {
+    override fun run(player: ServerPlayer): PlayerAction.Result {
         when (this.type) {
-            ActionModifier.Once -> player.moveControl.jump()
+            ActionModifier.Once -> player.actions.jump()
             ActionModifier.Hold -> player.actions.jumping = true
             ActionModifier.Release -> player.actions.jumping = false
         }
-        return PuppetPlayerAction.Result.Complete
+        return PlayerAction.Result.Complete
     }
 
-    override fun provider(): PuppetPlayerActionProvider {
+    override fun provider(): PlayerActionProvider {
         return JumpAction
     }
 
-    companion object: PuppetPlayerActionProvider {
+    companion object: PlayerActionProvider {
         override val id: Identifier = Identifier.withDefaultNamespace("jump")
 
         override val codec: MapCodec<out JumpAction> = RecordCodecBuilder.mapCodec { instance ->
@@ -46,7 +47,7 @@ class JumpAction(private val type: ActionModifier): PuppetPlayerAction {
             }
         }
 
-        override fun createCommandAction(context: CommandContext<CommandSourceStack>): PuppetPlayerAction {
+        override fun createCommandAction(context: CommandContext<CommandSourceStack>): PlayerAction {
             return JumpAction(EnumArgument.getEnumeration<ActionModifier>(context, "modifier"))
         }
     }

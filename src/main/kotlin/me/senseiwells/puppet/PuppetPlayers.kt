@@ -1,6 +1,7 @@
 package me.senseiwells.puppet
 
 import me.senseiwells.puppet.command.PuppetPlayerCommand
+import me.senseiwells.puppet.extensions.PlayerActionsExtension
 import me.senseiwells.puppet.mixins.CachedUserNameToIdResolverAccessor
 import me.senseiwells.puppet.mixins.ServicesAccessor
 import me.senseiwells.puppet.network.MineToolsGameProfileRepository
@@ -34,6 +35,7 @@ object PuppetPlayers: ModInitializer {
 
     override fun onInitialize() {
         PuppetPlayerRegistries.load()
+        PlayerActionsExtension.registerEvents()
 
         GlobalEventHandler.Server.register<ServerRegisterCommandEvent> { event ->
             event.register(PuppetPlayerCommand)

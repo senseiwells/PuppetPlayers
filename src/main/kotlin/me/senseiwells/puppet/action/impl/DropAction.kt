@@ -7,26 +7,28 @@ import com.mojang.brigadier.context.CommandContext
 import com.mojang.serialization.Codec
 import com.mojang.serialization.MapCodec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import me.senseiwells.puppet.PuppetPlayer
-import me.senseiwells.puppet.action.PuppetPlayerAction
-import me.senseiwells.puppet.action.PuppetPlayerActionProvider
+import me.senseiwells.puppet.action.PlayerAction
+import me.senseiwells.puppet.action.PlayerActionProvider
 import net.casual.arcade.commands.argument
+import net.casual.arcade.utils.player.updateSelectedSlot
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.resources.Identifier
+import net.minecraft.server.level.ServerPlayer
 
-class DropAction(private val dropEntireStack: Boolean = false): PuppetPlayerAction {
-    override fun run(player: PuppetPlayer): PuppetPlayerAction.Result {
+class DropAction(private val dropEntireStack: Boolean = false): PlayerAction {
+    override fun run(player: ServerPlayer): PlayerAction.Result {
         if (!player.isSpectator) {
             player.drop(this.dropEntireStack)
+            player.updateSelectedSlot()
         }
-        return PuppetPlayerAction.Result.Complete
+        return PlayerAction.Result.Complete
     }
 
-    override fun provider(): PuppetPlayerActionProvider {
+    override fun provider(): PlayerActionProvider {
         return DropAction
     }
 
-    companion object: PuppetPlayerActionProvider {
+    companion object: PlayerActionProvider {
         override val id: Identifier = Identifier.withDefaultNamespace("drop")
 
         override val codec: MapCodec<out DropAction> = RecordCodecBuilder.mapCodec { instance ->
@@ -44,7 +46,7 @@ class DropAction(private val dropEntireStack: Boolean = false): PuppetPlayerActi
             }
         }
 
-        override fun createCommandAction(context: CommandContext<CommandSourceStack>): PuppetPlayerAction {
+        override fun createCommandAction(context: CommandContext<CommandSourceStack>): PlayerAction {
             return DropAction(BoolArgumentType.getBool(context, "stack"))
         }
     }

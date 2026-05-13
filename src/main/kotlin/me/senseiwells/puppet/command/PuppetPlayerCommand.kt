@@ -11,7 +11,8 @@ import com.mojang.brigadier.suggestion.Suggestions
 import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import me.senseiwells.puppet.PuppetPlayer
 import me.senseiwells.puppet.PuppetPlayers
-import me.senseiwells.puppet.action.PuppetPlayerActionProvider
+import me.senseiwells.puppet.action.PlayerActionProvider
+import me.senseiwells.puppet.extensions.PlayerActionsExtension.Companion.actions
 import me.senseiwells.puppet.utils.PuppetPlayerRegistries
 import net.casual.arcade.commands.*
 import net.casual.arcade.npc.FakePlayer
@@ -46,6 +47,9 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
     )
     private val REAL_PLAYERS_ONLY = SimpleCommandExceptionType(
         Component.literal("Only real players may be affected by this command")
+    )
+    private val INVALID_PLAYER = SimpleCommandExceptionType(
+        Component.literal("No such player found")
     )
     private val PLAYER_ALREADY_ONLINE = SimpleCommandExceptionType(
         Component.literal("Player is already online")
@@ -224,22 +228,26 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
         }
     }
 
-    private fun runAction(context: CommandContext<CommandSourceStack>, provider: PuppetPlayerActionProvider): Int {
-        val player = this.getFakePlayerOrThrow(context)
+    private fun runAction(context: CommandContext<CommandSourceStack>, provider: PlayerActionProvider): Int {
+        val player = this.getPlayerOrThrow(context)
         val action = provider.createCommandAction(context)
-        player.actions.run(action)
-        return context.source.success("Successfully ran action '${provider.id}'")
+        if (player.actions.run(action)) {
+            return context.source.success("Successfully added '${provider.id}' action")
+        }
+        return context.source.fail("Action '${provider.id}' is invalid for non-puppet player")
     }
 
-    private fun addAction(context: CommandContext<CommandSourceStack>, provider: PuppetPlayerActionProvider): Int {
-        val player = this.getFakePlayerOrThrow(context)
+    private fun addAction(context: CommandContext<CommandSourceStack>, provider: PlayerActionProvider): Int {
+        val player = this.getPlayerOrThrow(context)
         val action = provider.createCommandAction(context)
-        player.actions.chain(action)
-        return context.source.success("Successfully added '${provider.id}' action")
+        if (player.actions.chain(action)) {
+            return context.source.success("Successfully added '${provider.id}' action")
+        }
+        return context.source.fail("Action '${provider.id}' is invalid for non-puppet player")
     }
 
     private fun loopActions(context: CommandContext<CommandSourceStack>): Int {
-        val player = this.getFakePlayerOrThrow(context)
+        val player = this.getPlayerOrThrow(context)
         val loop = BoolArgumentType.getBool(context, "loop")
         player.actions.loop = loop
         if (loop) {
@@ -249,7 +257,7 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
     }
 
     private fun pauseActions(context: CommandContext<CommandSourceStack>): Int {
-        val player = this.getFakePlayerOrThrow(context)
+        val player = this.getPlayerOrThrow(context)
         if (player.actions.paused) {
             return context.source.fail("Actions are already paused")
         }
@@ -258,7 +266,7 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
     }
 
     private fun resumeActions(context: CommandContext<CommandSourceStack>): Int {
-        val player = this.getFakePlayerOrThrow(context)
+        val player = this.getPlayerOrThrow(context)
         if (!player.actions.paused) {
             return context.source.fail("Actions are not paused")
         }
@@ -267,13 +275,13 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
     }
 
     private fun restartActions(context: CommandContext<CommandSourceStack>): Int {
-        val player = this.getFakePlayerOrThrow(context)
+        val player = this.getPlayerOrThrow(context)
         player.actions.restart()
         return context.source.success("Successfully restarted actions")
     }
 
     private fun stopActions(context: CommandContext<CommandSourceStack>): Int {
-        val player = this.getFakePlayerOrThrow(context)
+        val player = this.getPlayerOrThrow(context)
         player.actions.clear()
         return context.source.success("Successfully stopped all actions")
     }
@@ -288,16 +296,17 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
 
     private fun getRealPlayerOrThrow(context: CommandContext<CommandSourceStack>): ServerPlayer {
         val player = this.getPlayerOrThrow(context)
-        if (player == null || player::class.java != ServerPlayer::class.java) {
+        if (player::class.java != ServerPlayer::class.java) {
             throw REAL_PLAYERS_ONLY.create()
         }
         return player
     }
 
-    private fun getPlayerOrThrow(context: CommandContext<CommandSourceStack>): ServerPlayer? {
+    private fun getPlayerOrThrow(context: CommandContext<CommandSourceStack>): ServerPlayer {
         return if (context.hasArgument("username")) {
             val username = UsernameArgument.getUsername(context, "username")
             context.source.server.playerList.getPlayerByName(username)
+                ?: throw INVALID_PLAYER.create()
         } else {
             EntityArgument.getPlayer(context, "player")
         }

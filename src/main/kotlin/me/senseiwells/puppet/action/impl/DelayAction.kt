@@ -7,33 +7,33 @@ import com.mojang.brigadier.context.CommandContext
 import com.mojang.serialization.Codec
 import com.mojang.serialization.MapCodec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import me.senseiwells.puppet.PuppetPlayer
-import me.senseiwells.puppet.action.PuppetPlayerAction
-import me.senseiwells.puppet.action.PuppetPlayerActionProvider
+import me.senseiwells.puppet.action.PlayerAction
+import me.senseiwells.puppet.action.PlayerActionProvider
 import net.casual.arcade.commands.argument
 import net.casual.arcade.utils.TimeUtils.Ticks
 import net.casual.arcade.utils.time.MinecraftTimeDuration
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.arguments.TimeArgument
 import net.minecraft.resources.Identifier
+import net.minecraft.server.level.ServerPlayer
 
 class DelayAction(
     private val delay: MinecraftTimeDuration,
     private var ticks: Int = 0
-): PuppetPlayerAction {
-    override fun run(player: PuppetPlayer): PuppetPlayerAction.Result {
+): PlayerAction {
+    override fun run(player: ServerPlayer): PlayerAction.Result {
         if (this.ticks++ >= this.delay.ticks) {
             this.ticks = 0
-            return PuppetPlayerAction.Result.Complete
+            return PlayerAction.Result.Complete
         }
-        return PuppetPlayerAction.Result.Incomplete
+        return PlayerAction.Result.Incomplete
     }
 
-    override fun provider(): PuppetPlayerActionProvider {
+    override fun provider(): PlayerActionProvider {
         return DelayAction
     }
 
-    companion object: PuppetPlayerActionProvider {
+    companion object: PlayerActionProvider {
         override val id: Identifier = Identifier.withDefaultNamespace("delay")
 
         override val codec: MapCodec<out DelayAction> = RecordCodecBuilder.mapCodec { instance ->
@@ -55,7 +55,7 @@ class DelayAction(
             }
         }
 
-        override fun createCommandAction(context: CommandContext<CommandSourceStack>): PuppetPlayerAction {
+        override fun createCommandAction(context: CommandContext<CommandSourceStack>): PlayerAction {
             return DelayAction(IntegerArgumentType.getInteger(context, "delay").Ticks)
         }
     }

@@ -10,12 +10,12 @@ import net.minecraft.core.Registry
 
 /**
  * This interface provides methods for creating
- * [PuppetPlayerAction]s through commands and [codec]s.
+ * [PlayerAction]s through commands and [codec]s.
  *
  * Implementations of this interface should be registered
  * to the [PuppetPlayerRegistries.ACTION_PROVIDERS].
  */
-interface PuppetPlayerActionProvider: CodecProvider<PuppetPlayerAction> {
+interface PlayerActionProvider: CodecProvider<PlayerAction> {
     /**
      * Whether the action can be run stand-alone.
      */
@@ -44,7 +44,7 @@ interface PuppetPlayerActionProvider: CodecProvider<PuppetPlayerAction> {
      * @param context The command context.
      * @return The created action.
      */
-    fun createCommandAction(context: CommandContext<CommandSourceStack>): PuppetPlayerAction
+    fun createCommandAction(context: CommandContext<CommandSourceStack>): PlayerAction
 
     companion object {
         /**
@@ -52,7 +52,7 @@ interface PuppetPlayerActionProvider: CodecProvider<PuppetPlayerAction> {
          *
          * @param registry The registry to register to.
          */
-        fun PuppetPlayerActionProvider.register(registry: Registry<PuppetPlayerActionProvider>) {
+        fun PlayerActionProvider.register(registry: Registry<PlayerActionProvider>) {
             Registry.register(registry, this.id, this)
         }
     }

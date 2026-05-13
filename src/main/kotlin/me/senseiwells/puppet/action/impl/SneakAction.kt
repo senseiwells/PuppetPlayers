@@ -8,23 +8,24 @@ import com.mojang.serialization.Codec
 import com.mojang.serialization.MapCodec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import me.senseiwells.puppet.PuppetPlayer
+import me.senseiwells.puppet.action.PlayerAction
 import me.senseiwells.puppet.action.PuppetPlayerAction
-import me.senseiwells.puppet.action.PuppetPlayerActionProvider
+import me.senseiwells.puppet.action.PlayerActionProvider
 import net.casual.arcade.commands.argument
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.resources.Identifier
 
 class SneakAction(private val sneaking: Boolean): PuppetPlayerAction {
-    override fun run(player: PuppetPlayer): PuppetPlayerAction.Result {
+    override fun run(player: PuppetPlayer): PlayerAction.Result {
         player.moveControl.sneaking = this.sneaking
-        return PuppetPlayerAction.Result.Complete
+        return PlayerAction.Result.Complete
     }
 
-    override fun provider(): PuppetPlayerActionProvider {
+    override fun provider(): PlayerActionProvider {
         return SneakAction
     }
 
-    companion object: PuppetPlayerActionProvider {
+    companion object: PlayerActionProvider {
         override val id: Identifier = Identifier.withDefaultNamespace("sneak")
 
         override val codec: MapCodec<out SneakAction> = RecordCodecBuilder.mapCodec { instance ->
@@ -42,7 +43,7 @@ class SneakAction(private val sneaking: Boolean): PuppetPlayerAction {
             }
         }
 
-        override fun createCommandAction(context: CommandContext<CommandSourceStack>): PuppetPlayerAction {
+        override fun createCommandAction(context: CommandContext<CommandSourceStack>): PlayerAction {
             return SneakAction(BoolArgumentType.getBool(context, "sneaking"))
         }
     }

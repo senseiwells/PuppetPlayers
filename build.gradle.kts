@@ -31,13 +31,9 @@ dependencies {
     implementation(libs.fabric.api)
     implementation(libs.fabric.kotlin)
 
-    include(implementation(libs.arcade.commands.get())!!)
 
-    include(api(libs.arcade.npcs.get())!!)
-    include(implementation(libs.arcade.event.registry.get())!!)
-    include(implementation(libs.arcade.events.server.get())!!)
-    include(implementation(libs.arcade.scheduler.get())!!)
-    include(implementation(libs.arcade.utils.get())!!)
+    api(libs.bundles.arcade)
+    include(libs.bundles.arcade)
 }
 
 loom {

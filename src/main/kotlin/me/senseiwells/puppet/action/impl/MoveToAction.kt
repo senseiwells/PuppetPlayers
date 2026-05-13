@@ -9,8 +9,9 @@ import com.mojang.serialization.Codec
 import com.mojang.serialization.MapCodec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import me.senseiwells.puppet.PuppetPlayer
+import me.senseiwells.puppet.action.PlayerAction
 import me.senseiwells.puppet.action.PuppetPlayerAction
-import me.senseiwells.puppet.action.PuppetPlayerActionProvider
+import me.senseiwells.puppet.action.PlayerActionProvider
 import net.casual.arcade.commands.argument
 import net.casual.arcade.commands.hasArgument
 import net.casual.arcade.commands.literal
@@ -30,8 +31,8 @@ sealed class MoveToAction(
 
     abstract fun getTarget(player: PuppetPlayer): Vec3?
 
-    override fun run(player: PuppetPlayer): PuppetPlayerAction.Result {
-        val target = this.getTarget(player) ?: return PuppetPlayerAction.Result.Complete
+    override fun run(player: PuppetPlayer): PlayerAction.Result {
+        val target = this.getTarget(player) ?: return PlayerAction.Result.Complete
         val current = this.target
 
         if (current != null && current.closerThan(target, 2.0)) {
@@ -42,21 +43,21 @@ sealed class MoveToAction(
                 if (this.jump) {
                     player.moveControl.jump()
                 }
-                return PuppetPlayerAction.Result.Incomplete
+                return PlayerAction.Result.Incomplete
             }
             this.target = null
-            return PuppetPlayerAction.Result.Complete
+            return PlayerAction.Result.Complete
         }
 
         val canNavigate = player.navigation.moveTo(target.x, target.y, target.z, 1.0)
         if (canNavigate) {
             this.target = target
-            return PuppetPlayerAction.Result.Incomplete
+            return PlayerAction.Result.Incomplete
         }
-        return PuppetPlayerAction.Result.Complete
+        return PlayerAction.Result.Complete
     }
 
-    override fun provider(): PuppetPlayerActionProvider {
+    override fun provider(): PlayerActionProvider {
         return MoveToAction
     }
 
@@ -81,7 +82,7 @@ sealed class MoveToAction(
         }
     }
 
-    companion object: PuppetPlayerActionProvider {
+    companion object: PlayerActionProvider {
         private val POSITION_CODEC = RecordCodecBuilder.mapCodec { instance ->
             instance.group(
                 Vec3.CODEC.fieldOf("target").forGetter(MoveToPositionAction::target),
@@ -133,7 +134,7 @@ sealed class MoveToAction(
             }
         }
 
-        override fun createCommandAction(context: CommandContext<CommandSourceStack>): PuppetPlayerAction {
+        override fun createCommandAction(context: CommandContext<CommandSourceStack>): PlayerAction {
             val sprint = context.hasArgument("sprint") && BoolArgumentType.getBool(context, "sprint")
             val jump = context.hasArgument("jump") && BoolArgumentType.getBool(context, "jump")
             if (context.hasArgument("position")) {
