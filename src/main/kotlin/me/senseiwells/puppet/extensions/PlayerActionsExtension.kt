@@ -1,7 +1,6 @@
 package me.senseiwells.puppet.extensions
 
 import me.senseiwells.puppet.PuppetPlayers
-import me.senseiwells.puppet.action.PlayerAction
 import me.senseiwells.puppet.action.PlayerActions
 import net.casual.arcade.events.GlobalEventHandler
 import net.casual.arcade.events.ListenerRegistry.Companion.register
@@ -21,7 +20,6 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.level.storage.ValueInput
 import net.minecraft.world.level.storage.ValueOutput
-import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.ApiStatus.Internal
 import kotlin.jvm.optionals.getOrNull
 

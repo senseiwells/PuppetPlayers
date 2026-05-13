@@ -19,7 +19,7 @@ repositories {
     mavenLocal()
 }
 
-val modVersion = "1.5.2"
+val modVersion = "1.6.0"
 val releaseVersion = "${modVersion}+${libs.versions.minecraft.get()}"
 version = releaseVersion
 group = "me.senseiwells"
@@ -70,7 +70,7 @@ tasks {
         file = jar.get().archiveFile
         changelog.set(
             """
-            - Update to support 26.1.x
+            - Allow certain actions to be run by real players
             """.trimIndent()
         )
         type = STABLE

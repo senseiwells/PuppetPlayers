@@ -56,25 +56,26 @@ Once a player has joined the world, we can make the player leave by running the 
 ### Actions
 
 Puppet players are able to run actions mimicking real player behaviour.
+Certain actions can also be run on real players.
 
 Here is a list of all available actions:
 
-| Action                          | Description                                          | Arguments                                                                 | Works stand-alone |
-|---------------------------------|------------------------------------------------------|---------------------------------------------------------------------------|-------------------|
-| `"minecraft:attack"`            | Makes the player attack (left click).                | `<once\|hold\|release>`                                                   | Yes               |
-| `"minecraft:delay"`             | Adds a delay between chained actions.                | `<delay>`                                                                 | No                |
-| `"minecraft:drop"`              | Makes the player drop their selected item.           | `<entire_stack>`                                                          | Yes               |
-| `"minecraft:interrupt_look_at"` | Interrupts the current look at target.               | None                                                                      | Yes               |
-| `"minecraft:interrupt_move_to"` | Interrupts the players current pathfinding.          | None                                                                      | Yes               |
-| `"minecraft:jump"`              | Makes the player jump.                               | `<once\|hold\|release>`                                                   | Yes               |
-| `"minecraft:look"`              | Makes the player look in a direction.                | `<rotation>`                                                              | Yes               |
-| `"minecraft:look_at"`           | Makes the player look towards the specified target.  | `position <pos> <lock?>` or `entity <entity> <lock?>`                     | Yes               |
-| `"minecraft:move_to"`           | Makes the player pathfind to a position or entity.   | `position <pos> <sprint?> <jump?>` or `entity <entity> <sprint?> <jump?>` | Yes               |
-| `"minecraft:offhand"`           | Makes the player swap their item with their offhand. | None                                                                      | Yes               |
-| `"minecraft:sneak"`             | Makes the player sneak.                              | `<sneaking>`                                                              | Yes               |
-| `"minecraft:sprint"`            | Makes the player sprint.                             | `<sprinting>`                                                             | Yes               |
-| `"minecraft:swap_slot"`         | Makes the player swap to a slot.                     | `<slot>`                                                                  | Yes               |
-| `"minecraft:use"`               | Makes the player use (right click).                  | `<once\|hold\|release>`                                                   | Yes               |
+| Action                          | Description                                          | Arguments                                                                 | Works stand-alone | Puppet only |
+|---------------------------------|------------------------------------------------------|---------------------------------------------------------------------------|-------------------|-------------|
+| `"minecraft:attack"`            | Makes the player attack (left click).                | `<once\|hold\|release>`                                                   | Yes               | No          |
+| `"minecraft:delay"`             | Adds a delay between chained actions.                | `<delay>`                                                                 | No                | No          |
+| `"minecraft:drop"`              | Makes the player drop their selected item.           | `<entire_stack>`                                                          | Yes               | No          |
+| `"minecraft:interrupt_look_at"` | Interrupts the current look at target.               | None                                                                      | Yes               | Yes         |
+| `"minecraft:interrupt_move_to"` | Interrupts the players current pathfinding.          | None                                                                      | Yes               | Yes         |
+| `"minecraft:jump"`              | Makes the player jump.                               | `<once\|hold\|release>`                                                   | Yes               | Yes         |
+| `"minecraft:look"`              | Makes the player look in a direction.                | `<rotation>`                                                              | Yes               | No          |
+| `"minecraft:look_at"`           | Makes the player look towards the specified target.  | `position <pos> <lock?>` or `entity <entity> <lock?>`                     | Yes               | Yes         |
+| `"minecraft:move_to"`           | Makes the player pathfind to a position or entity.   | `position <pos> <sprint?> <jump?>` or `entity <entity> <sprint?> <jump?>` | Yes               | Yes         |
+| `"minecraft:offhand"`           | Makes the player swap their item with their offhand. | None                                                                      | Yes               | No          |
+| `"minecraft:sneak"`             | Makes the player sneak.                              | `<sneaking>`                                                              | Yes               | Yes         |
+| `"minecraft:sprint"`            | Makes the player sprint.                             | `<sprinting>`                                                             | Yes               | Yes         |
+| `"minecraft:swap_slot"`         | Makes the player swap to a slot.                     | `<slot>`                                                                  | Yes               | No          |
+| `"minecraft:use"`               | Makes the player use (right click).                  | `<once\|hold\|release>`                                                   | Yes               | No          |
 
 To run an action, we can run it stand-alone with the following command:
 ```mcfunction
@@ -141,7 +142,7 @@ repositories {
 }
 
 dependencies {
-    implementation("me.senseiwells:puppet-players:1.5.2+26.1.2")
+    implementation("me.senseiwells:puppet-players:1.6.0+26.1.2")
 }
 ```
 
