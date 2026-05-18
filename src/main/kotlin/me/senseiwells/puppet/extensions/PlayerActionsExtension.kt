@@ -1,5 +1,6 @@
 package me.senseiwells.puppet.extensions
 
+import me.senseiwells.puppet.PuppetPlayer
 import me.senseiwells.puppet.PuppetPlayers
 import me.senseiwells.puppet.action.PlayerActions
 import net.casual.arcade.events.GlobalEventHandler
@@ -29,7 +30,7 @@ class PlayerActionsExtension(player: ServerPlayer): PlayerExtension(player), Ser
     private var result: InteractionResult? = null
 
     private fun pushResult(result: InteractionResult) {
-        if (this.result != null) {
+        if (this.result != null && this.player is PuppetPlayer) {
             PuppetPlayers.logger.warn("Pushed interaction result before last was popped!")
         }
         this.result = result
@@ -75,6 +76,7 @@ class PlayerActionsExtension(player: ServerPlayer): PlayerExtension(player), Ser
         private val ServerPlayer.actionsExtension
             get() = this.getExtension<PlayerActionsExtension>()
 
+        @JvmStatic
         val ServerPlayer.actions: PlayerActions
             get() = this.actionsExtension.actions
 

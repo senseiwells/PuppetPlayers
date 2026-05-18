@@ -19,7 +19,7 @@ repositories {
     mavenLocal()
 }
 
-val modVersion = "1.6.0"
+val modVersion = "1.6.1"
 val releaseVersion = "${modVersion}+${libs.versions.minecraft.get()}"
 version = releaseVersion
 group = "me.senseiwells"
@@ -70,7 +70,9 @@ tasks {
         file = jar.get().archiveFile
         changelog.set(
             """
-            - Allow certain actions to be run by real players
+            - Fix players not being able to use correctly
+            - Fix log spam when player tries to attack/use
+            - Fix use action not working properly
             """.trimIndent()
         )
         type = STABLE

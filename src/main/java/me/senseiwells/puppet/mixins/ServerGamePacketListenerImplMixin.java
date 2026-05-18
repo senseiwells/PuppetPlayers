@@ -1,6 +1,7 @@
 package me.senseiwells.puppet.mixins;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import me.senseiwells.puppet.extensions.PlayerActionsExtension;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -47,5 +48,16 @@ public class ServerGamePacketListenerImplMixin {
     private InteractionResult storeUseResultForFake(InteractionResult original) {
         PlayerActionsExtension.pushActionResult(this.player, original);
         return original;
+    }
+
+    @WrapWithCondition(
+        method = "handlePlayerAction",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/server/level/ServerPlayer;releaseUsingItem()V"
+        )
+    )
+    private boolean isActionHoldingUse(ServerPlayer instance) {
+        return !PlayerActionsExtension.getActions(instance).getUsingHeld();
     }
 }

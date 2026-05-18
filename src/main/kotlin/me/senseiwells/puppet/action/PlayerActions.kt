@@ -95,7 +95,7 @@ class PlayerActions(
     }
 
     fun valid(action: PlayerAction): Boolean {
-        return action !is PuppetPlayerAction || this.player is PuppetPlayer
+        return action !is PuppetPlayerAction || this.isPuppet()
     }
 
     internal fun tick() {
@@ -117,7 +117,7 @@ class PlayerActions(
 
         var attacked = false
         if (this.player.isUsingItem) {
-            if (!this.using) {
+            if (!this.using && this.isPuppet()) {
                 this.releaseUsingItem()
             }
         } else {
@@ -148,6 +148,10 @@ class PlayerActions(
         if (this.player is PuppetPlayer) {
             this.player.moveControl.jump()
         }
+    }
+
+    private fun isPuppet(): Boolean {
+        return this.player is PuppetPlayer
     }
 
     private fun runActions() {
