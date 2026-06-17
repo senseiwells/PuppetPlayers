@@ -13,7 +13,7 @@ import net.minecraft.network.protocol.game.ServerboundAttackPacket
 import net.minecraft.network.protocol.game.ServerboundInteractPacket
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket.Action
-import net.minecraft.network.protocol.game.ServerboundSpectateEntityPacket
+import net.minecraft.network.protocol.game.ServerboundSpectatorActionPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.server.level.ServerPlayer
@@ -26,6 +26,7 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.EntityHitResult
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
+import java.util.OptionalInt
 import kotlin.math.max
 import kotlin.math.sqrt
 
@@ -192,7 +193,7 @@ class PlayerActions(
         if (this.player.isSpectator) {
             val hitResult = this.hitResult
             if (hitResult is EntityHitResult) {
-                this.handle(ServerboundSpectateEntityPacket(hitResult.entity.id))
+                this.handle(ServerboundSpectatorActionPacket(OptionalInt.of(hitResult.entity.id)))
                 return true
             }
         }

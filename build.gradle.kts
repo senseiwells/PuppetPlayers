@@ -19,7 +19,7 @@ repositories {
     mavenLocal()
 }
 
-val modVersion = "1.6.2"
+val modVersion = "1.7.0"
 val releaseVersion = "${modVersion}+${libs.versions.minecraft.get()}"
 version = releaseVersion
 group = "me.senseiwells"
@@ -31,7 +31,6 @@ dependencies {
     implementation(libs.fabric.api)
     implementation(libs.fabric.kotlin)
 
-
     api(libs.bundles.arcade)
     include(libs.bundles.arcade)
 }
@@ -39,11 +38,7 @@ dependencies {
 loom {
     runs {
         getByName("server") {
-            runDir = "run/server"
-        }
-
-        getByName("client") {
-            runDir = "run/client"
+            runDirectory.set(file("run/server"))
         }
     }
 }
@@ -70,7 +65,7 @@ tasks {
         file = jar.get().archiveFile
         changelog.set(
             """
-            - Update dependencies
+            - Update to 26.2
             """.trimIndent()
         )
         type = STABLE
