@@ -19,7 +19,7 @@ repositories {
     mavenLocal()
 }
 
-val modVersion = "1.7.1"
+val modVersion = "1.8.0"
 val releaseVersion = "${modVersion}+${libs.versions.minecraft.get()}"
 version = releaseVersion
 group = "me.senseiwells"
@@ -65,7 +65,12 @@ tasks {
         file = jar.get().archiveFile
         changelog.set(
             """
-            - Update to 26.2
+            - Fixed an issue where puppets would get stuck in an "already joining" state
+            - Fixes some minor issues with jumping/sneaking:
+              - Puppets can now creative fly by double jumping (within 7 ticks)
+              - Puppets can now activate elytra by jumping while falling
+              - Puppets can now ascend/descend while flying by jumping/sneaking
+            - Fixed puppets not being pushed out blocks if clipped into them
             """.trimIndent()
         )
         type = STABLE
