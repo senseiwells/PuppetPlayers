@@ -32,6 +32,8 @@ class PuppetPlayerConfig(
     val puppetPlayerDeathDelay: MinecraftTimeDuration = 0.Ticks,
     @SerialName("operator_required_for_puppets")
     val operatorRequiredForPuppets: Boolean = true,
+    @SerialName("can_players_puppet_themselves")
+    val canPlayersPuppetThemselves: Boolean = true,
     @SerialName("use_mine_tools_api")
     @EncodeDefault(EncodeDefault.Mode.NEVER)
     val useMineToolsApi: Boolean = false

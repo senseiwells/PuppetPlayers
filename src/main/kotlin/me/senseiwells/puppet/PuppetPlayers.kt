@@ -8,8 +8,8 @@ import me.senseiwells.puppet.network.MineToolsGameProfileRepository
 import me.senseiwells.puppet.utils.PuppetPlayerRegistries
 import net.casual.arcade.commands.register
 import net.casual.arcade.events.GlobalEventHandler
-import net.casual.arcade.events.ListenerRegistry.Companion.register
 import net.casual.arcade.events.server.*
+import net.casual.arcade.events.utils.register
 import net.casual.arcade.npc.FakePlayer
 import net.fabricmc.api.ModInitializer
 import net.minecraft.core.UUIDUtil

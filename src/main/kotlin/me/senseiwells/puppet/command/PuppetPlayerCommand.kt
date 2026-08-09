@@ -14,6 +14,7 @@ import me.senseiwells.puppet.PuppetPlayers
 import me.senseiwells.puppet.action.PlayerActionProvider
 import me.senseiwells.puppet.extensions.PlayerActionsExtension.Companion.actions
 import me.senseiwells.puppet.utils.PuppetPlayerRegistries
+import me.senseiwells.puppet.utils.puppet
 import net.casual.arcade.commands.*
 import net.casual.arcade.npc.FakePlayer
 import net.casual.arcade.scheduler.GlobalTickedScheduler
@@ -51,6 +52,12 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
     private val INVALID_PLAYER = SimpleCommandExceptionType(
         Component.literal("No such player found")
     )
+    private val CAN_ONLY_PUPPET_SELF = SimpleCommandExceptionType(
+        Component.literal("You may only puppet yourself")
+    )
+    private val NO_PUPPET_PERMISSIONS = SimpleCommandExceptionType(
+        Component.literal("You may not puppet this player")
+    )
     private val PLAYER_ALREADY_ONLINE = SimpleCommandExceptionType(
         Component.literal("Player is already online")
     )
@@ -60,13 +67,15 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
 
     override fun create(buildContext: CommandBuildContext): LiteralArgumentBuilder<CommandSourceStack> {
         return CommandTree.buildLiteral("puppet") {
-            requires { it.hasPermission(PermissionLevel.GAMEMASTERS) || !PuppetPlayers.config.operatorRequiredForPuppets }
+            requires { source -> source.canPuppetSelf() }
 
             argument("username", UsernameArgument.username()) {
                 literal("join") {
+                    requires { source -> source.hasPuppetPermission() }
                     executes(::fakePlayerJoin)
                 }
                 literal("spawn") {
+                    requires { source -> source.hasPuppetPermission() }
                     executes { c -> spawnFakePlayer(c, c.source.position, c.source.rotation, c.source.level, null) }
                     literal("at") {
                         argument("position", Vec3Argument.vec3()) {
@@ -101,14 +110,17 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
 
     private fun addCommonCommandTree(builder: ArgumentBuilder<CommandSourceStack, *>) {
         builder.literal("shadow") {
+            requires { source -> source.canPuppetSelf() }
             executes(::shadowRealPlayer)
         }
 
         builder.literal("leave") {
+            requires { source -> source.hasPuppetPermission() }
             executes(::fakePlayerLeave)
         }
 
         builder.literal("actions") {
+            requires { source -> source.canPuppetSelf() }
             literal("run") {
                 for (provider in PuppetPlayerRegistries.ACTION_PROVIDERS) {
                     if (provider.canRunAction) {
@@ -198,7 +210,7 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
     private fun shadowRealPlayer(context: CommandContext<CommandSourceStack>) {
         val player = this.getRealPlayerOrThrow(context)
         player.connection.disconnect(PlayerList.DUPLICATE_LOGIN_DISCONNECT_MESSAGE)
-        GlobalTickedScheduler.schedule(1.Ticks) {
+        GlobalTickedScheduler.Server.schedule(1.Ticks) {
             FakePlayer.join(context.source.server, player.gameProfile, ::PuppetPlayer)
         }
     }
@@ -232,7 +244,7 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
         val player = this.getPlayerOrThrow(context)
         val action = provider.createCommandAction(context)
         if (player.actions.run(action)) {
-            return context.source.success("Successfully added '${provider.id}' action")
+            return context.source.success("Successfully ran '${provider.id}' action")
         }
         return context.source.fail("Action '${provider.id}' is invalid for non-puppet player")
     }
@@ -303,12 +315,33 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
     }
 
     private fun getPlayerOrThrow(context: CommandContext<CommandSourceStack>): ServerPlayer {
-        return if (context.hasArgument("username")) {
+        val player = if (context.hasArgument("username")) {
             val username = UsernameArgument.getUsername(context, "username")
             context.source.server.playerList.getPlayerByName(username)
                 ?: throw INVALID_PLAYER.create()
         } else {
             EntityArgument.getPlayer(context, "player")
         }
+
+        if (context.source.hasPuppetPermission()) {
+            return player
+        }
+        if (context.source.canPuppetSelf()) {
+            if (player == context.source.player) {
+                return player
+            }
+            throw CAN_ONLY_PUPPET_SELF.create()
+        }
+        throw NO_PUPPET_PERMISSIONS.create()
+    }
+
+    @Suppress("UnstableApiUsage")
+    private fun CommandSourceStack.hasPuppetPermission(): Boolean {
+        return this.checkPermission(puppet("command"), PermissionLevel.GAMEMASTERS)
+            || !PuppetPlayers.config.operatorRequiredForPuppets
+    }
+
+    private fun CommandSourceStack.canPuppetSelf(): Boolean {
+        return PuppetPlayers.config.canPlayersPuppetThemselves || this.hasPuppetPermission()
     }
 }
