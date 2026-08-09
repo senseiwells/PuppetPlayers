@@ -9,8 +9,10 @@ import me.senseiwells.puppet.utils.PuppetPlayerRegistries
 import net.casual.arcade.commands.register
 import net.casual.arcade.events.GlobalEventHandler
 import net.casual.arcade.events.server.*
+import net.casual.arcade.events.server.player.PlayerTickEvent
 import net.casual.arcade.events.utils.register
 import net.casual.arcade.npc.FakePlayer
+import net.casual.arcade.utils.player.username
 import net.fabricmc.api.ModInitializer
 import net.minecraft.core.UUIDUtil
 import net.minecraft.nbt.CompoundTag

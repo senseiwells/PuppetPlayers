@@ -17,7 +17,7 @@ import net.minecraft.resources.Identifier
 
 class SneakAction(private val sneaking: Boolean): PuppetPlayerAction {
     override fun run(player: PuppetPlayer): PlayerAction.Result {
-        player.moveControl.sneaking = this.sneaking
+        player.input.shift = this.sneaking
         return PlayerAction.Result.Complete
     }
 

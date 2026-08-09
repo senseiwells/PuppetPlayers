@@ -9,6 +9,7 @@ import net.minecraft.server.level.ClientInformation
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier
 import net.minecraft.world.entity.ai.attributes.Attributes
+import net.minecraft.world.entity.player.Input
 import org.jetbrains.annotations.ApiStatus.Internal
 
 class PuppetPlayer @Internal constructor(

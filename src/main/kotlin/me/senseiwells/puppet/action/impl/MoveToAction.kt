@@ -38,7 +38,7 @@ sealed class MoveToAction(
         if (current != null && current.closerThan(target, 2.0)) {
             if (player.navigation.isInProgress()) {
                 if (this.sprint) {
-                    player.moveControl.sprinting = true
+                    player.input.sprint = true
                 }
                 if (this.jump) {
                     player.moveControl.jump()

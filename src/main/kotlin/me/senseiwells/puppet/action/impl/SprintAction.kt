@@ -17,7 +17,7 @@ import net.minecraft.resources.Identifier
 
 class SprintAction(private val sprinting: Boolean): PuppetPlayerAction {
     override fun run(player: PuppetPlayer): PlayerAction.Result {
-        player.moveControl.sprinting = this.sprinting
+        player.input.sprint = this.sprinting
         return PlayerAction.Result.Complete
     }
 
