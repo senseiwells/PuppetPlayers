@@ -95,6 +95,26 @@ class PlayerActions(
         this.chained.clear()
     }
 
+    fun reset() {
+        this.clear()
+        this.actions.clear()
+        this.action = 0
+        this.loop = false
+        this.paused = false
+
+        this.attacking = false
+        this.attackingHeld = false
+        this.using = false
+        this.usingHeld = false
+        this.jumping = false
+
+        this.stopDestroyBlock()
+        if (this.player is PuppetPlayer) {
+            this.player.navigation.stop()
+            this.player.input.reset()
+        }
+    }
+
     fun valid(action: PlayerAction): Boolean {
         return action !is PuppetPlayerAction || this.isPuppet()
     }

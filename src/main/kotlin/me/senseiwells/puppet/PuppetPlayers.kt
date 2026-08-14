@@ -5,19 +5,22 @@ import me.senseiwells.puppet.extensions.PlayerActionsExtension
 import me.senseiwells.puppet.mixins.CachedUserNameToIdResolverAccessor
 import me.senseiwells.puppet.mixins.ServicesAccessor
 import me.senseiwells.puppet.network.MineToolsGameProfileRepository
+import me.senseiwells.puppet.puppeteer.PlayerPuppeting
 import me.senseiwells.puppet.utils.PuppetPlayerRegistries
 import net.casual.arcade.commands.register
 import net.casual.arcade.events.GlobalEventHandler
-import net.casual.arcade.events.server.*
-import net.casual.arcade.events.server.player.PlayerTickEvent
+import net.casual.arcade.events.server.ServerRegisterCommandEvent
+import net.casual.arcade.events.server.ServerSaveEvent
+import net.casual.arcade.events.server.ServerStartEvent
+import net.casual.arcade.events.server.ServerStopEvent
 import net.casual.arcade.events.utils.register
 import net.casual.arcade.npc.FakePlayer
-import net.casual.arcade.utils.player.username
+import net.casual.arcade.utils.player.kick
+import net.casual.arcade.utils.server.players
 import net.fabricmc.api.ModInitializer
 import net.minecraft.core.UUIDUtil
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtIo
-import net.minecraft.network.chat.Component
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.level.storage.LevelResource
 import org.slf4j.Logger
@@ -38,6 +41,7 @@ object PuppetPlayers: ModInitializer {
     override fun onInitialize() {
         PuppetPlayerRegistries.load()
         PlayerActionsExtension.registerEvents()
+        PlayerPuppeting.registerEvents()
 
         GlobalEventHandler.Server.register<ServerRegisterCommandEvent> { event ->
             event.register(PuppetPlayerCommand)
@@ -59,10 +63,14 @@ object PuppetPlayers: ModInitializer {
         }
         GlobalEventHandler.Server.register<ServerStopEvent> { (server) ->
             this.saveFakePlayers(server)
+
+            for (player in server.playerList.players.toList()) {
+                PlayerPuppeting.stop(player)
+            }
             // We dc fake players here because luckperms is silly
             for (player in server.playerList.players.toList()) {
                 if (player is PuppetPlayer) {
-                    player.connection.disconnect(Component.empty())
+                    player.kick()
                 }
             }
         }
@@ -88,16 +96,15 @@ object PuppetPlayers: ModInitializer {
     }
 
     private fun saveFakePlayers(server: MinecraftServer) {
-        val players = ArrayList<UUID>()
-        for (player in server.playerList.players) {
-            if (player !is PuppetPlayer) {
-                continue
+        val players = LinkedHashSet<UUID>()
+        for (player in server.players) {
+            if (player is PuppetPlayer) {
+                players.add(player.uuid)
             }
-            players.add(player.uuid)
         }
 
         val wrapper = CompoundTag()
-        wrapper.store("players", UUIDUtil.STRING_CODEC.listOf(), players)
+        wrapper.store("players", UUIDUtil.STRING_CODEC.listOf(), players.toList())
         try {
             NbtIo.write(wrapper, this.getFakePlayerDat(server))
         } catch (e: Exception) {

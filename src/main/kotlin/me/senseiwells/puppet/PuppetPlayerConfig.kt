@@ -34,6 +34,8 @@ class PuppetPlayerConfig(
     val operatorRequiredForPuppets: Boolean = true,
     @SerialName("can_players_puppet_themselves")
     val canPlayersPuppetThemselves: Boolean = true,
+    @SerialName("enable_puppeteering")
+    val enablePuppeteering: Boolean = false,
     @SerialName("use_mine_tools_api")
     @EncodeDefault(EncodeDefault.Mode.NEVER)
     val useMineToolsApi: Boolean = false
@@ -54,9 +56,11 @@ class PuppetPlayerConfig(
                 return PuppetPlayerConfig().also { this.write(it) }
             }
             return try {
-                this.path.inputStream().use {
-                    json.decodeFromStream(it)
+                val config = this.path.inputStream().use {
+                    json.decodeFromStream<PuppetPlayerConfig>(it)
                 }
+                this.write(config)
+                config
             } catch (e: Exception) {
                 PuppetPlayers.logger.error("Failed to read puppet-player config, generating default", e)
                 PuppetPlayerConfig().also { this.write(it) }

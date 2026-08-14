@@ -13,6 +13,8 @@ import me.senseiwells.puppet.PuppetPlayer
 import me.senseiwells.puppet.PuppetPlayers
 import me.senseiwells.puppet.action.PlayerActionProvider
 import me.senseiwells.puppet.extensions.PlayerActionsExtension.Companion.actions
+import me.senseiwells.puppet.extensions.PlayerPuppeteerExtension.Companion.puppeteerExtension
+import me.senseiwells.puppet.puppeteer.PlayerPuppeting
 import me.senseiwells.puppet.utils.PuppetPlayerRegistries
 import me.senseiwells.puppet.utils.puppet
 import net.casual.arcade.commands.*
@@ -64,6 +66,9 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
     private val PLAYER_ALREADY_JOINING = SimpleCommandExceptionType(
         Component.literal("Player is already joining")
     )
+    private val PLAYER_IS_PUPPETING = SimpleCommandExceptionType(
+        Component.literal("That player is away puppeting")
+    )
 
     override fun create(buildContext: CommandBuildContext): LiteralArgumentBuilder<CommandSourceStack> {
         return CommandTree.buildLiteral("puppet") {
@@ -109,6 +114,8 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
     }
 
     private fun addCommonCommandTree(builder: ArgumentBuilder<CommandSourceStack, *>) {
+        builder.executes(::puppet)
+
         builder.literal("shadow") {
             requires { source -> source.canPuppetSelf() }
             executes(::shadowRealPlayer)
@@ -175,8 +182,7 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
         runCatching(parser::parse)
         return parser.fillSuggestions(builder) {
             val names = context.source.server.playerList.players
-                // .filterIsInstance<PuppetPlayer>()
-                .map { player -> player.username }
+                .map { player -> player.puppeteerExtension.disguisedProfile().name() }
             SharedSuggestionProvider.suggest(names, it)
         }
     }
@@ -213,6 +219,24 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
         GlobalTickedScheduler.Server.schedule(1.Ticks) {
             FakePlayer.join(context.source.server, player.gameProfile, ::PuppetPlayer)
         }
+    }
+
+    private fun puppet(context: CommandContext<CommandSourceStack>): Int {
+        if (!context.source.canBecomePuppeteer()) {
+            return context.source.fail("You do not have permission to be a puppeteer")
+        }
+
+        val puppet = this.getFakePlayerOrThrow(context, true)
+        val puppeteer = context.source.playerOrException
+        if (puppet == puppeteer.puppeteerExtension.originBody()) {
+            PlayerPuppeting.stop(puppeteer)
+            return context.source.success("Stopped puppeting ${puppet.username}")
+        }
+
+        if (!PlayerPuppeting.start(puppeteer, puppet)) {
+            return context.source.fail("Unable to puppet ${puppet.username}")
+        }
+        return context.source.success("You are now puppeting ${puppet.username}")
     }
 
     private fun fakePlayerLeave(context: CommandContext<CommandSourceStack>): Int {
@@ -298,8 +322,14 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
         return context.source.success("Successfully stopped all actions")
     }
 
-    private fun getFakePlayerOrThrow(context: CommandContext<CommandSourceStack>): PuppetPlayer {
+    private fun getFakePlayerOrThrow(
+        context: CommandContext<CommandSourceStack>,
+        bypassPuppeting: Boolean = false
+    ): PuppetPlayer {
         val player = this.getPlayerOrThrow(context)
+        if (!bypassPuppeting && player.puppeteerExtension.isAwayPuppeting()) {
+            throw PLAYER_IS_PUPPETING.create()
+        }
         if (player !is PuppetPlayer) {
             throw FAKE_PLAYERS_ONLY.create()
         }
@@ -317,8 +347,8 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
     private fun getPlayerOrThrow(context: CommandContext<CommandSourceStack>): ServerPlayer {
         val player = if (context.hasArgument("username")) {
             val username = UsernameArgument.getUsername(context, "username")
-            context.source.server.playerList.getPlayerByName(username)
-                ?: throw INVALID_PLAYER.create()
+            val named = context.source.server.playerList.getPlayerByName(username) ?: throw INVALID_PLAYER.create()
+            named.puppeteerExtension.counterpartBody() ?: named
         } else {
             EntityArgument.getPlayer(context, "player")
         }
@@ -343,5 +373,9 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
 
     private fun CommandSourceStack.canPuppetSelf(): Boolean {
         return PuppetPlayers.config.canPlayersPuppetThemselves || this.hasPuppetPermission()
+    }
+
+    private fun CommandSourceStack.canBecomePuppeteer(): Boolean {
+        return PuppetPlayers.config.enablePuppeteering && this.hasPuppetPermission()
     }
 }

@@ -53,6 +53,32 @@ Once a player has joined the world, we can make the player leave by running the 
 /puppet <player> leave
 ```
 
+### Puppeteering
+
+Players can take over a puppet and play as it, leaving their own body behind in the world:
+```mcfunction
+/puppet <player>
+```
+You can only specify puppets to puppeteer, or yourself if you are currently puppeteering
+which puts you back in your original body. This feature is disabled by default and must be
+enabled by setting `enable_puppeteering`, see [the config section](#config).
+
+While puppeteering you will appear to other players as the puppet, and you resume the position
+that the puppet was in with their inventory. Anything done to the puppet will persist after you
+stop puppeting them. Stats and advancements however are still tied to *your* account. The same
+is true for chat, messages are still sent through your account.
+
+Your original body while puppeteering will become a puppet, so you can run `/puppet` on them
+like you could with any other puppet, except for the `leave` command. Because on the server
+you are still playing on *your* account when someone runs a command specifying your name it
+will target the player you are puppeteering. For example, if the player `senseiwells` is
+puppeteering `SuperSanta` and someone runs `/tp senseiwells` they will teleport to the player
+SuperSanta. The exception to this is the `/puppet` command which will refer to whoever is going
+by that name.
+
+If you die while puppeteering or if the puppet disconnects then you will stop puppeteering. If
+you log off while puppeteering then your original body will be logged off and the puppet will remain online.
+
 ### Actions
 
 Puppet players are able to run actions mimicking real player behaviour.
@@ -121,7 +147,8 @@ The config is located in `./config/puppet-player-config.json` and by default sho
   "respawn_puppet_players": true,
   "puppet_player_death_delay": 0,
   "operator_required_for_puppets": true,
-  "can_players_puppet_themselves": true
+  "can_players_puppet_themselves": true,
+  "enable_puppeteering": false
 }
 ```
 - `"reload_puppet_players"` - Whether puppets will rejoin if the server stopped with them last online
@@ -129,6 +156,7 @@ The config is located in `./config/puppet-player-config.json` and by default sho
 - `"puppet_player_death_delay""` - The delay after the puppet dies to either respawn/leave (determined by `respawn_puppet_players`)
 - `"operator_required_for_puppets"` - Whether players need operator permissions to run the `/puppet` command
 - `"can_players_puppet_themselves"` - Whether non-op players are able to run the `/puppet` command on themselves
+- `"enable_puppeteering"` - Whether players are able to take over a puppet and play as it
 
 ### Developers
 
