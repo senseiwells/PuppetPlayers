@@ -1,7 +1,7 @@
 <br/>
 <div align="center">
 <a href="https://github.com/senseiwells/PuppetPlayers">
-<img src="./src/main/resources/assets/puppet-players/icon.png" alt="Logo" width="80" height="80">
+<img src="https://raw.githubusercontent.com/senseiwells/PuppetPlayers/HEAD/src/main/resources/assets/puppet-players/icon.png" alt="Logo" width="80" height="80">
 </a>
 <h3 align="center">Puppet Players</h3>
 <p align="center">
@@ -23,6 +23,7 @@ The aim of this mod is to keep the behaviour of the puppet players as accurate a
 - The client code for player actions is simulated on the server.
 - Puppet players send packets to interact with the server, like a real player.
 - Maintaining compatibility with all mods.
+
 ## Getting Started
 
 The mod can be installed from modrinth:
@@ -148,7 +149,10 @@ The config is located in `./config/puppet-player-config.json` and by default sho
   "puppet_player_death_delay": 0,
   "operator_required_for_puppets": true,
   "can_players_puppet_themselves": true,
-  "enable_puppeteering": false
+  "can_spawn_puppets_anywhere": true,
+  "can_spawn_whitelisted_players_as_puppets": true,
+  "enable_puppeteering": false,
+  "enabled_actions": "*"
 }
 ```
 - `"reload_puppet_players"` - Whether puppets will rejoin if the server stopped with them last online
@@ -156,7 +160,25 @@ The config is located in `./config/puppet-player-config.json` and by default sho
 - `"puppet_player_death_delay""` - The delay after the puppet dies to either respawn/leave (determined by `respawn_puppet_players`)
 - `"operator_required_for_puppets"` - Whether players need operator permissions to run the `/puppet` command
 - `"can_players_puppet_themselves"` - Whether non-op players are able to run the `/puppet` command on themselves
+- `"can_spawn_puppets_anywhere` - Whether you can run the `/puppet <username> spawn <position?>` to spawn puppets anywhere in the world (as opposed to `join` which spawns then where they last logged off)
+- `"can_spawn_whitelisted_players_as_puppets"` - Whether you can spawn whitelisted players as puppets
 - `"enable_puppeteering"` - Whether players are able to take over a puppet and play as it
+- `"enabled_actions"` - The list of enabled actions that you can make puppets do, `"*"` for all actions, or list the enabled actions, e.g. `["attack", "use"]`
+
+For a survival server, a less "cheaty" version of the mod can be used with the following recommended config:
+```json
+{
+  "reload_puppet_players": true,
+  "respawn_puppet_players": false,
+  "puppet_player_death_delay": 20,
+  "operator_required_for_puppets": true,
+  "can_players_puppet_themselves": true,
+  "can_spawn_puppets_anywhere": false,
+  "can_spawn_whitelisted_players_as_puppets": false,
+  "enable_puppeteering": false,
+  "enabled_actions": ["use", "attack", "drop", "swap_slot"]
+}
+```
 
 ### Developers
 

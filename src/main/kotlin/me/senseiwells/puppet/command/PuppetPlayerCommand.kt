@@ -60,6 +60,9 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
     private val NO_PUPPET_PERMISSIONS = SimpleCommandExceptionType(
         Component.literal("You may not puppet this player")
     )
+    private val CANNOT_SPAWN_WHITELISTED_PLAYER = SimpleCommandExceptionType(
+        Component.literal("You may not spawn a whitelisted player as a puppet")
+    )
     private val PLAYER_ALREADY_ONLINE = SimpleCommandExceptionType(
         Component.literal("Player is already online")
     )
@@ -80,7 +83,7 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
                     executes(::fakePlayerJoin)
                 }
                 literal("spawn") {
-                    requires { source -> source.hasPuppetPermission() }
+                    requires { source -> source.hasPuppetPermission() && PuppetPlayers.config.canSpawnPuppetsAnywhere }
                     executes { c -> spawnFakePlayer(c, c.source.position, c.source.rotation, c.source.level, null) }
                     literal("at") {
                         argument("position", Vec3Argument.vec3()) {
@@ -257,6 +260,13 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
         if (FakePlayer.isJoining(username)) {
             throw PLAYER_ALREADY_JOINING.create()
         }
+
+        if (!PuppetPlayers.config.canSpawnWhitelistedPlayers && server.playerList.isUsingWhitelist) {
+            if (server.playerList.whiteListNames.contains(username)) {
+                throw CANNOT_SPAWN_WHITELISTED_PLAYER.create()
+            }
+        }
+
         return FakePlayer.join(context.source.server, username, ::PuppetPlayer).whenComplete { _, throwable ->
             if (throwable != null) {
                 context.source.fail("Puppet player $username failed to join, see logs for more info")

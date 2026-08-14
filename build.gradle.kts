@@ -19,7 +19,7 @@ repositories {
     mavenLocal()
 }
 
-val modVersion = "1.8.0"
+val modVersion = "2.0.0"
 val releaseVersion = "${modVersion}+${libs.versions.minecraft.get()}"
 version = releaseVersion
 group = "me.senseiwells"
@@ -84,6 +84,8 @@ tasks {
             projectId = "8fH4Iml8"
             minecraftVersions.add(libs.versions.minecraft)
 
+            projectDescription.set(createProjectDescription())
+
             requires {
                 id = "P7dR8mSH"
             }
@@ -132,4 +134,33 @@ private fun MavenPublication.updateReadme(vararg readmes: String) {
         val readme = file(path)
         readme.writeText(readme.readText().replace(regex, locationWithVersion))
     }
+}
+
+fun createProjectDescription(): String {
+    var description = StringBuilder(file("README.md").readText())
+
+    fun replaceNotes() {
+        val regex = Regex("""\[!([A-Z]+)\]""")
+        for (result in regex.findAll(description)) {
+            val range = result.groups[0]!!.range
+            val type = result.groups[1]!!.value
+            val formatted = type.lowercase().replaceFirstChar { c -> c.uppercase() }
+            description.replace(range.first, range.last + 1, "$formatted:")
+        }
+    }
+
+    fun replaceModrinthLink() {
+        val regex = Regex("""## Getting Started[\s\S]*## Usage""")
+        description = StringBuilder(description.replace(regex, "## Usage"))
+    }
+
+    fun removeDevelopers() {
+        val index = description.indexOf("### Developers")
+        description = StringBuilder(description.substring(0, index))
+    }
+
+    replaceNotes()
+    replaceModrinthLink()
+    removeDevelopers()
+    return description.toString()
 }
