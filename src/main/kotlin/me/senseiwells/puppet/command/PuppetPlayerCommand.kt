@@ -130,7 +130,7 @@ object PuppetPlayerCommand: CommandTree<CommandSourceStack> {
             requires { source -> source.canPuppetSelf() }
             literal("run") {
                 for (provider in PuppetPlayerRegistries.ACTION_PROVIDERS) {
-                    if (provider.canRunAction) {
+                    if (provider.canRunAction && PuppetPlayers.config.enabledActions.check(provider.id)) {
                         literal(provider.id.toString()) {
                             provider.addCommandArguments(this) { context ->
                                 runAction(context, provider)

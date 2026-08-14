@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
+import me.senseiwells.puppet.utils.EnabledActions
 import net.casual.arcade.utils.TimeUtils.Ticks
 import net.casual.arcade.utils.serialization.kotlin.CodecSerializersModule
 import net.casual.arcade.utils.time.MinecraftTimeDuration
@@ -36,10 +37,14 @@ class PuppetPlayerConfig(
     val canPlayersPuppetThemselves: Boolean = true,
     @SerialName("enable_puppeteering")
     val enablePuppeteering: Boolean = false,
+    @Contextual
+    @SerialName("enabled_actions")
+    val enabledActions: EnabledActions = EnabledActions.All,
     @SerialName("use_mine_tools_api")
     @EncodeDefault(EncodeDefault.Mode.NEVER)
     val useMineToolsApi: Boolean = false
 ) {
+
     companion object {
         private val path: Path = FabricLoader.getInstance().configDir.resolve("puppet-player-config.json")
         private val json = Json {
@@ -48,6 +53,7 @@ class PuppetPlayerConfig(
             prettyPrintIndent = "  "
             serializersModule = CodecSerializersModule {
                 contextual(MinecraftTimeDuration.CODEC)
+                contextual(EnabledActions.CODEC)
             }
         }
 
