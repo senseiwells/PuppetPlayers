@@ -65,29 +65,7 @@ tasks {
         file = jar.get().archiveFile
         changelog.set(
             """
-            - Added **puppeteering**
-              - By running `/puppet <puppet_username>` on a puppet
-                you can now puppeteer that puppet. You will resume their
-                position and play as if you were the puppet, your original
-                body will become a puppet and remain in the world until you
-                log off, die, or stop puppeting (by running `/puppet <your_username`).
-              - This feature is disabled by default, you will need to set
-                `"enable_puppeteering"` to `true` in the config.
-              - See the mod page for more details on how this works!
-            - Reworked player `move_to` action pathfinding
-              - Puppets can now parkour over gaps
-              - Puppets can now climb ladders/vines/scaffolding
-              - Pathfinding in general should be less janky
-            - Added some more configs:
-              - `"can_spawn_puppets_anywhere"` - Whether the `/puppet <username> spawn` command is enabled
-              - `"can_spawn_whitelisted_players_as_puppets"` - Whether you can spawn whitelisted players as puppets
-              - `"enable_puppeteering"` - Whether players can puppeteer puppets
-              - `"enabled_actions"` - The list of enabled puppet actions, `"*"` for all actions, or list them
-                out for granular control, e.g. `["use", "attack", "drop"]`
-              - These are primarily aimed at allowing for a more survival friendly experience while
-                keeping all the features available for creative/testing use
-                
-            Please report any issues to the [bug tracker](https://github.com/senseiwells/PuppetPlayers/issues)
+            Fixed an issue that would cause the mod to crash when installed on the client
             """.trimIndent()
         )
         type = STABLE
