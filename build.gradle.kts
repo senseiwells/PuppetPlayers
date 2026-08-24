@@ -19,7 +19,7 @@ repositories {
     mavenLocal()
 }
 
-val modVersion = "2.0.0"
+val modVersion = "2.0.1"
 val releaseVersion = "${modVersion}+${libs.versions.minecraft.get()}"
 version = releaseVersion
 group = "me.senseiwells"
