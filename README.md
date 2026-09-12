@@ -157,10 +157,10 @@ The config is located in `./config/puppet-player-config.json` and by default sho
 ```
 - `"reload_puppet_players"` - Whether puppets will rejoin if the server stopped with them last online
 - `"respawn_puppet_players"` - Whether to respawn puppets after they die, if disabled they will leave the game instead
-- `"puppet_player_death_delay""` - The delay after the puppet dies to either respawn/leave (determined by `respawn_puppet_players`)
+- `"puppet_player_death_delay"` - The delay after the puppet dies to either respawn/leave (determined by `respawn_puppet_players`)
 - `"operator_required_for_puppets"` - Whether players need operator permissions to run the `/puppet` command
 - `"can_players_puppet_themselves"` - Whether non-op players are able to run the `/puppet` command on themselves
-- `"can_spawn_puppets_anywhere` - Whether you can run the `/puppet <username> spawn <position?>` to spawn puppets anywhere in the world (as opposed to `join` which spawns then where they last logged off)
+- `"can_spawn_puppets_anywhere"` - Whether you can run the `/puppet <username> spawn <position?>` to spawn puppets anywhere in the world (as opposed to `join` which spawns then where they last logged off)
 - `"can_spawn_whitelisted_players_as_puppets"` - Whether you can spawn whitelisted players as puppets
 - `"enable_puppeteering"` - Whether players are able to take over a puppet and play as it
 - `"enabled_actions"` - The list of enabled actions that you can make puppets do, `"*"` for all actions, or list the enabled actions, e.g. `["attack", "use"]`
