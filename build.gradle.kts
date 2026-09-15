@@ -19,7 +19,7 @@ repositories {
     mavenLocal()
 }
 
-val modVersion = "2.0.1"
+val modVersion = "2.0.2"
 val releaseVersion = "${modVersion}+${libs.versions.minecraft.get()}"
 version = releaseVersion
 group = "me.senseiwells"
@@ -65,7 +65,7 @@ tasks {
         file = jar.get().archiveFile
         changelog.set(
             """
-            Fixed an issue that would cause the mod to crash when installed on the client
+            Fixed an bug that caused puppets to never reload in singleplayer
             """.trimIndent()
         )
         type = STABLE
