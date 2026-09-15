@@ -194,7 +194,7 @@ repositories {
 }
 
 dependencies {
-    implementation("me.senseiwells:puppet-players:2.0.2+26.2")
+    implementation("me.senseiwells:puppet-players:2.1.0+26.3")
 }
 ```
 

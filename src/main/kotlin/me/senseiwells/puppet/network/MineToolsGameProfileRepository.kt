@@ -4,8 +4,8 @@ import com.mojang.authlib.GameProfileRepository
 import com.mojang.authlib.ProfileLookupCallback
 import com.mojang.authlib.exceptions.MinecraftClientException
 import com.mojang.authlib.minecraft.client.MinecraftClient
-import com.mojang.authlib.yggdrasil.ProfileNotFoundException
-import com.mojang.authlib.yggdrasil.response.NameAndId
+import com.mojang.authlib.services.ProfileNotFoundException
+import com.mojang.authlib.services.response.NameAndId
 import java.net.Proxy
 import java.net.URI
 import java.util.*

@@ -22,6 +22,7 @@ import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.projectile.ProjectileUtil
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.component.SwingAnimation
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.EntityHitResult
 import net.minecraft.world.phys.HitResult
@@ -229,7 +230,7 @@ class PlayerActions(
         val piercingWeapon = heldItem.get(DataComponents.PIERCING_WEAPON)
         if (piercingWeapon != null) {
             this.piercingAttack()
-            this.swing(InteractionHand.MAIN_HAND)
+            this.swing(InteractionHand.MAIN_HAND, heldItem.attackAnimation)
             return true
         }
 
@@ -256,7 +257,7 @@ class PlayerActions(
                 }
             }
         }
-        this.swing(InteractionHand.MAIN_HAND)
+        this.swing(InteractionHand.MAIN_HAND, heldItem.attackAnimation)
         return endAttack
     }
 
@@ -272,7 +273,7 @@ class PlayerActions(
             val blockPos = hitResult.blockPos
             if (!this.player.level().getBlockState(blockPos).isAir) {
                 if (this.continueDestroyBlock(blockPos, hitResult.direction)) {
-                    this.swing(InteractionHand.MAIN_HAND)
+                    this.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT)
                 }
             }
         } else {
@@ -297,8 +298,8 @@ class PlayerActions(
                     if (this.player.isWithinEntityInteractionRange(hitResult.entity, 0.0)) {
                         val result = this.interact(hitResult.entity, hitResult, hand)
                         if (result is InteractionResult.Success) {
-                            if (result.swingSource == InteractionResult.SwingSource.SERVER) {
-                                this.swing(hand)
+                            if (result.swingSource == InteractionResult.SwingSource.SERVER_ONLY) {
+                                this.swing(hand, stack.interactAnimation)
                             }
                             return
                         }
@@ -307,8 +308,8 @@ class PlayerActions(
                 is BlockHitResult ->  {
                     val result = this.useItemOn(hand, hitResult)
                     if (result is InteractionResult.Success) {
-                        if (result.swingSource == InteractionResult.SwingSource.SERVER) {
-                            this.swing(hand)
+                        if (result.swingSource == InteractionResult.SwingSource.SERVER_ONLY) {
+                            this.swing(hand, stack.interactAnimation)
                         }
                         return
                     } else if (result is InteractionResult.Fail) {
@@ -319,8 +320,8 @@ class PlayerActions(
             if (!stack.isEmpty) {
                 val result = this.useItem(hand)
                 if (result is InteractionResult.Success) {
-                    if (result.swingSource == InteractionResult.SwingSource.SERVER) {
-                        this.swing(hand)
+                    if (result.swingSource == InteractionResult.SwingSource.SERVER_ONLY) {
+                        this.swing(hand, stack.interactAnimation)
                     }
                     return
                 }
@@ -328,8 +329,8 @@ class PlayerActions(
         }
     }
 
-    private fun swing(hand: InteractionHand) {
-        this.player.swing(hand, true)
+    private fun swing(hand: InteractionHand, animation: SwingAnimation) {
+        this.player.swing(hand, animation, true)
     }
 
     private fun releaseUsingItem() {

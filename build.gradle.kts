@@ -19,7 +19,7 @@ repositories {
     mavenLocal()
 }
 
-val modVersion = "2.0.2"
+val modVersion = "2.1.0"
 val releaseVersion = "${modVersion}+${libs.versions.minecraft.get()}"
 version = releaseVersion
 group = "me.senseiwells"
@@ -65,7 +65,7 @@ tasks {
         file = jar.get().archiveFile
         changelog.set(
             """
-            Fixed an bug that caused puppets to never reload in singleplayer
+            Updated to 26.3
             """.trimIndent()
         )
         type = STABLE
