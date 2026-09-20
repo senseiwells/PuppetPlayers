@@ -32,6 +32,9 @@ The mod can be installed from modrinth:
 
 ## Usage
 
+> This documentation covers the ***latest*** version of the mod, for versions prior to 2.0.0
+> please see the [old documentation](https://github.com/senseiwells/PuppetPlayers/blob/26.1/README.md)
+
 After installing the mod the `/puppet` command should become available to operators.
 The `/puppet` command can also be made available to all players by changing the config,
 see [the config section](#config) for more details.
