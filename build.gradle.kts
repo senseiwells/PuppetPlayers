@@ -14,7 +14,6 @@ plugins {
 
 repositories {
     maven("https://maven.parchmentmc.org/")
-    maven("https://maven.supersanta.me/snapshots")
     maven("https://api.modrinth.com/maven")
     mavenCentral()
     mavenLocal()
