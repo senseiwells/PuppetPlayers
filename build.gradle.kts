@@ -13,6 +13,7 @@ plugins {
 }
 
 repositories {
+    maven("https://maven.supersanta.me/snapshots")
     maven("https://maven.parchmentmc.org/")
     maven("https://api.modrinth.com/maven")
     mavenCentral()
@@ -30,6 +31,8 @@ dependencies {
     implementation(libs.fabric.loader)
     implementation(libs.fabric.api)
     implementation(libs.fabric.kotlin)
+
+    include(implementation(libs.simple.config.get())!!)
 }
 
 arcade {
